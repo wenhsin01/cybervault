@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#185FA5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CyberVault">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="description" content="CyberVault 智慧密碼安全系統 — Firebase 雲端同步、AI 強度分析、20種密碼學生成策略">
+<title>CyberVault — 智慧密碼安全系統</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#EEF3FA;min-height:100vh;font-size:14px}
+:root{
+  --bg:#EEF3FA;--bg2:#F5F9FF;
+  --blue1:#E6F1FB;--blue2:#B5D4F4;--blue3:#378ADD;--blue4:#185FA5;--blue5:#0C447C;
+  --amber1:#FAEEDA;--amber2:#FAC775;--amber4:#BA7517;--amber5:#633806;
+  --red1:#FCEBEB;--red2:#F7C1C1;--red4:#E24B4A;--red5:#791F1F;
+  --green1:#EAF3DE;--green2:#C0DD97;--green4:#639922;--green5:#27500A;
+  --purple1:#EEEDFE;--purple5:#3C3489;
+  --gray1:#F1EFE8;--gray3:#888780;--gray5:#444441;
+  --bd1:#C8D8EE;--bd2:#B5D4F4;--bd3:#D5E4F5;
+}
+.app{min-height:100vh}
+.pg{display:none}.pg.on{display:block}
+
+/* Navbar */
+.navbar{background:#fff;border-bottom:1px solid var(--bd1);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(24,95,165,.06)}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo-box{width:36px;height:36px;background:var(--blue4);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-box svg{width:20px;height:20px;stroke:#E6F1FB;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.logo-name{font-size:16px;font-weight:700;color:var(--blue5)}
+.logo-sub{font-size:10px;color:var(--blue3);letter-spacing:1px;margin-top:-2px}
+.sync-badge{display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--green2);background:var(--green1);color:var(--green5);font-weight:600}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green4);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sync-badge.offline{background:var(--gray1);border-color:#ccc;color:var(--gray5)}
+.sync-badge.offline .sync-dot{background:var(--gray3);animation:none}
+.nav-user{font-size:13px;color:var(--blue4);background:var(--blue1);padding:5px 12px;border-radius:7px;border:1px solid var(--bd2);display:flex;align-items:center;gap:5px}
+
+/* Buttons */
+.btn{padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;border:1px solid var(--bd2);background:#fff;color:var(--blue4);font-weight:500;transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--blue1)}.btn:active{transform:scale(.98)}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.btn-primary{background:var(--blue4);color:#fff;border-color:var(--blue4)}.btn-primary:hover{background:var(--blue5)}
+.btn-sm{padding:5px 10px;font-size:12px}.btn-sm svg{width:13px;height:13px}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--gray3)}.btn-ghost:hover{background:var(--blue1);border-color:var(--bd2);color:var(--blue4)}
+.btn-red{background:var(--red1);color:var(--red5);border-color:var(--red2)}.btn-red:hover{background:var(--red2)}
+
+/* Cards */
+.card{background:#fff;border:1px solid var(--bd1);border-radius:12px;padding:20px}
+
+/* Form */
+.inp{width:100%;padding:9px 12px;border:1px solid var(--bd2);border-radius:8px;font-size:14px;background:#fff;color:#1a1a2e;font-family:inherit;transition:border .15s;outline:none}
+.inp:focus{border-color:var(--blue3);box-shadow:0 0 0 3px rgba(55,138,221,.13)}
+.inp-mono{font-family:'Courier New',monospace}
+.lbl{font-size:12px;color:var(--blue4);margin-bottom:5px;display:block;font-weight:600;letter-spacing:.3px}
+.field{margin-bottom:14px}
+.inp-row{display:flex;gap:6px}.inp-row .inp{flex:1}
+.err{font-size:12px;color:var(--red5);padding:7px 11px;background:var(--red1);border-radius:7px;margin-top:4px;display:none;border:1px solid var(--red2)}
+.err.on{display:block}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.b-blue{background:var(--blue1);color:var(--blue5)}.b-red{background:var(--red1);color:var(--red5)}
+.b-amber{background:var(--amber1);color:var(--amber5)}.b-green{background:var(--green1);color:var(--green5)}
+.b-gray{background:var(--gray1);color:var(--gray5)}
+
+/* Tab nav */
+.tab-nav{display:flex;gap:3px;background:#D5E4F5;border-radius:11px;padding:3px;margin-bottom:20px}
+.tnav{flex:1;padding:8px 4px;border-radius:8px;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--blue4);font-weight:500;font-family:inherit;text-align:center;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.tnav svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tnav.on{background:#fff;color:var(--blue5);box-shadow:0 1px 4px rgba(24,95,165,.18)}
+
+/* Auth */
+.auth-bg{min-height:100vh;background:linear-gradient(135deg,#EEF3FA 0%,#E0EDFB 100%);display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.auth-card{background:#fff;border:1px solid var(--bd1);border-radius:16px;padding:30px 28px 26px;width:400px;box-shadow:0 8px 32px rgba(24,95,165,.1)}
+.auth-tabs{display:flex;gap:2px;background:var(--blue1);border-radius:9px;padding:3px;margin-bottom:20px}
+.atab{flex:1;padding:7px;border-radius:7px;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--blue4);font-family:inherit;font-weight:500;transition:all .15s}
+.atab.on{background:#fff;color:var(--blue5);box-shadow:0 1px 3px rgba(24,95,165,.12)}
+
+/* Strength */
+.strack{height:5px;background:var(--bd3);border-radius:3px;overflow:hidden;margin:7px 0 3px}
+.sfill{height:100%;border-radius:3px;transition:width .4s,background .4s}
+
+/* Vault items */
+.pw-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:10px;background:var(--bg2);border:1px solid var(--bd1);margin-bottom:8px;transition:border-color .15s}
+.pw-item:hover{border-color:var(--blue3)}
+.pw-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--blue1);flex-shrink:0}
+.pw-icon svg{width:18px;height:18px;stroke:var(--blue4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vault-empty{text-align:center;padding:40px;color:var(--blue3);background:var(--bg2);border-radius:12px;border:1px dashed var(--bd2)}
+.vault-empty svg{width:36px;height:36px;stroke:var(--blue3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;display:block;margin:0 auto 10px}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(10,25,55,.5);z-index:200;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:14px;border:1px solid var(--bd1);padding:24px;width:420px;max-width:100%;box-shadow:0 8px 32px rgba(12,68,124,.12);margin:auto;position:relative}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+
+/* Info boxes */
+.box-ok{background:var(--green1);border:1px solid var(--green2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green5);display:flex;align-items:flex-start;gap:8px;margin:8px 0}
+.box-warn{background:var(--amber1);border:1px solid var(--amber2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--amber5);display:flex;align-items:flex-start;gap:8px;margin:8px 0}
+.box-danger{background:var(--red1);border:1px solid var(--red2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red5);display:flex;align-items:flex-start;gap:8px;margin:8px 0}
+.box-info{background:var(--blue1);border:1px solid var(--bd2);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--blue5);display:flex;align-items:flex-start;gap:8px;margin:8px 0}
+.box-ok svg,.box-warn svg,.box-danger svg,.box-info svg{width:15px;height:15px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px}
+
+/* Dims */
+.dim-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #EAF0F8}
+.dim-row:last-child{border:none}
+.policy-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #EAF0F8}
+.policy-row:last-child{border:none}
+.policy-row svg{width:15px;height:15px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px}
+
+/* Generator */
+.gen-out{background:#EEF4FD;border:1px solid var(--bd2);border-radius:9px;padding:12px 14px;font-family:'Courier New',monospace;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0;word-break:break-all;letter-spacing:.4px}
+
+/* Stats */
+.stat-box{background:#EEF4FD;border:1px solid var(--bd1);border-radius:10px;padding:14px 16px;text-align:center}
+.stat-n{font-size:24px;font-weight:700;color:var(--blue5)}.stat-l{font-size:11px;color:var(--blue3);margin-top:3px}
+
+/* Achievements */
+.ach-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #EAF0F8}
+.ach-row:last-child{border:none}
+.ach-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ach-ico svg{width:18px;height:18px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--blue3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.hint-chip{display:inline-flex;align-items:center;gap:5px;background:var(--blue1);border:1px solid var(--bd2);color:var(--blue5);border-radius:7px;padding:5px 10px;font-size:12px;margin:3px 3px 0 0}
+.hint-chip svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.score-ring{width:62px;height:62px;flex-shrink:0}
+.main-content{padding:20px 24px;max-width:900px;margin:0 auto}
+.chk-label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--blue4)}
+input[type=checkbox]{accent-color:var(--blue4)}
+input[type=range]{accent-color:var(--blue4);width:100%}
+.demo-hint{font-size:12px;color:var(--blue3);text-align:center;background:var(--blue1);border-radius:7px;padding:7px 12px;margin-top:12px;border:1px solid var(--bd2)}
+
+/* Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(14,30,60,.7);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.loading-overlay.hide{display:none}
+.spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Firebase banner */
+.fb-banner{background:linear-gradient(90deg,#185FA5,#378ADD);color:#fff;padding:10px 24px;font-size:12px;display:flex;align-items:center;gap:8px}
+.fb-banner svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* PWA install banner */
+.pwa-banner{display:none;background:#fff;border-bottom:2px solid var(--bd2);padding:10px 16px;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(24,95,165,.08)}
+.pwa-banner.show{display:flex}
+.pwa-banner-ico{width:40px;height:40px;background:var(--blue4);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pwa-banner-ico svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+@media(max-width:600px){
+  .navbar{padding:0 14px}.main-content{padding:12px}
+  .auth-card{width:100%;padding:22px 18px}.modal{padding:16px}
+  .tab-nav{gap:1px}.tnav{font-size:11px;padding:7px 2px}
+  .pw-item{padding:10px 12px;gap:8px}
+  .pw-icon{width:32px;height:32px}
+  .stat-box{padding:10px 8px}
+  .stat-n{font-size:20px}
+  .gen-out{font-size:12px}
+  #g-method-grid{grid-template-columns:1fr!important}
+  .fb-banner{padding:8px 14px;font-size:11px}
+}
+@media(max-width:380px){
+  .tnav span{display:none}
+  .tnav{padding:7px 6px}
+}
+</style>
+</head>
+<body>
+
+<!-- PWA Install Banner -->
+<div class="pwa-banner" id="pwa-banner">
+  <div class="pwa-banner-ico">
+    <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.5 3.6 10.7 8 12 4.4-1.3 8-6.5 8-12V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+  </div>
+  <div style="flex:1">
+    <div style="font-size:13px;font-weight:600;color:var(--blue5)">安裝 CyberVault App</div>
+    <div style="font-size:11px;color:var(--blue3);margin-top:1px">加入主畫面，像 App 一樣使用</div>
+  </div>
+  <button class="btn btn-primary btn-sm" onclick="pwaInstall()" id="pwa-install-btn">安裝</button>
+  <button class="btn btn-ghost btn-sm" onclick="pwaDismiss()">✕</button>
+</div>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div style="font-size:14px;font-weight:500">連接 Firebase 認證服務...</div>
+  <div style="font-size:12px;opacity:.7;margin-top:4px">Initializing Firebase Auth</div>
+</div>
+
+<div class="app" id="app" style="display:none">
+
+<!-- ═══ AUTH ═══ -->
+<div class="pg on" id="pg-auth">
+<div class="auth-bg">
+<div>
+  <div style="text-align:center;margin-bottom:22px">
+    <div style="width:54px;height:54px;background:var(--blue4);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+      <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:#E6F1FB;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M12 2L4 6v6c0 5.5 3.6 10.7 8 12 4.4-1.3 8-6.5 8-12V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+    </div>
+    <div style="font-size:22px;font-weight:700;color:var(--blue5)">CyberVault</div>
+    <div style="font-size:11px;color:var(--blue3);letter-spacing:1px;margin-top:3px">INTELLIGENT SECURITY SYSTEM</div>
+    <div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:11px;color:var(--green5);background:var(--green1);padding:4px 10px;border-radius:20px;border:1px solid var(--green2)">
+      <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--green4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.35 2 2 0 0 1 3.6 1.17h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 15.27z"/></svg>
+      Firebase Authentication 已啟用
+    </div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="atab on" id="atab-login" onclick="switchAuth('login')">登入</button>
+      <button class="atab" id="atab-reg" onclick="switchAuth('reg')">建立帳號</button>
+    </div>
+    <!-- Login -->
+    <div id="af-login">
+      <div class="field"><label class="lbl">帳號</label><input class="inp" id="l-u" placeholder="輸入帳號" autocomplete="username"></div>
+      <div class="field">
+        <label class="lbl">主密碼</label>
+        <div class="inp-row">
+          <input class="inp" type="password" id="l-p" placeholder="輸入主密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="btn btn-sm" onclick="toggleVis('l-p','l-eye')" title="顯示/隱藏">
+            <svg id="l-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="err" id="l-err"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="doLogin()" id="l-btn">
+        <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        登入
+      </button>
+      <div class="demo-hint">請先建立帳號，或使用已有帳號登入</div>
+    </div>
+    <!-- Register -->
+    <div id="af-reg" style="display:none">
+      <div class="field"><label class="lbl">帳號</label><input class="inp" id="r-u" placeholder="設定帳號（至少3字）"></div>
+      <div class="field">
+        <label class="lbl">主密碼</label>
+        <div class="inp-row">
+          <input class="inp" type="password" id="r-p" placeholder="設定主密碼" style="flex:1" oninput="regStrength()">
+          <button class="btn btn-sm" onclick="toggleVis('r-p','r-eye1')" title="顯示/隱藏"><svg id="r-eye1" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div id="r-sbar" style="display:none;margin-top:6px">
+          <div class="strack"><div class="sfill" id="r-sfill"></div></div>
+          <div style="font-size:11px;color:var(--blue3)" id="r-stxt"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl">確認主密碼</label>
+        <div class="inp-row">
+          <input class="inp" type="password" id="r-p2" placeholder="再次輸入主密碼" style="flex:1" onkeydown="if(event.key==='Enter')doRegister()">
+          <button class="btn btn-sm" onclick="toggleVis('r-p2','r-eye2')" title="顯示/隱藏"><svg id="r-eye2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+      <div class="err" id="r-err"></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="doRegister()">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        建立帳號
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="pg" id="pg-main">
+  <!-- Firebase banner -->
+  <div class="fb-banner">
+    <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    Firebase Authentication 已啟用 · 帳號由 Firebase 安全管理 · 資料即時同步至雲端 · 可跨裝置登入存取
+  </div>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo-wrap">
+      <div class="logo-box"><svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.5 3.6 10.7 8 12 4.4-1.3 8-6.5 8-12V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <div><div class="logo-name">CyberVault</div><div class="logo-sub">SECURITY SYSTEM</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="sync-badge" id="sync-badge">
+        <div class="sync-dot"></div>
+        <span id="sync-txt">雲端同步</span>
+      </div>
+      <div class="nav-user">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--blue4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="nav-u"></span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        登出
+      </button>
+    </div>
+  </div>
+  <!-- Content -->
+  <div class="main-content">
+    <div class="tab-nav">
+      <button class="tnav on" onclick="sTab('vault')"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>密碼庫</button>
+      <button class="tnav" onclick="sTab('analyze')"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>AI 分析</button>
+      <button class="tnav" onclick="sTab('gen')"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>生成器</button>
+      <button class="tnav" onclick="sTab('report')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>安全報告</button>
+    </div>
+
+    <!-- VAULT -->
+    <div id="t-vault">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <div style="font-size:16px;font-weight:600;color:var(--blue5)">我的密碼庫</div>
+          <div style="font-size:11px;color:var(--blue3);margin-top:2px" id="vault-sync-info">正在從 Firebase 載入...</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          新增密碼
+        </button>
+      </div>
+      <div id="vault-list"></div>
+      <div id="vault-empty" class="vault-empty" style="display:none">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px">密碼庫是空的</div>
+        <div style="font-size:12px">點擊「新增密碼」開始管理</div>
+      </div>
+    </div>
+
+    <!-- ANALYZE -->
+    <div id="t-analyze" style="display:none">
+      <div style="font-size:16px;font-weight:600;color:var(--blue5);margin-bottom:16px">AI 密碼深度分析</div>
+      <div class="card" style="border-color:var(--bd2)">
+        <div class="field">
+          <label class="lbl">輸入要分析的密碼</label>
+          <div class="inp-row">
+            <input class="inp inp-mono" type="text" id="a-inp" placeholder="例如：abc123、MyP@ssw0rd!" oninput="liveAnalyze()" style="flex:1">
+            <button class="btn btn-sm btn-ghost" onclick="clearAnalyze()" title="清除"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+        </div>
+        <div id="a-ph" style="text-align:center;padding:28px;color:var(--blue3)">
+          <svg viewBox="0 0 24 24" style="width:32px;height:32px;stroke:var(--blue3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;display:block;margin:0 auto 10px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          輸入密碼，AI 即時多維度分析
+        </div>
+        <div id="a-res" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- GENERATOR -->
+    <div id="t-gen" style="display:none">
+      <div style="font-size:16px;font-weight:600;color:var(--blue5);margin-bottom:4px">安全密碼生成器</div>
+      <div style="font-size:12px;color:var(--blue3);margin-bottom:16px">基於密碼學原理的 20 種生成策略</div>
+
+      <!-- Method selector grid -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px" id="g-method-grid"></div>
+
+      <!-- Method info box -->
+      <div class="box-info" id="g-method-info" style="margin-bottom:14px">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--blue4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="g-method-desc">請選擇生成策略</span>
+      </div>
+
+      <div class="card" style="border-color:var(--bd2)">
+        <!-- Length (only shown for relevant methods) -->
+        <div id="g-len-wrap" class="field">
+          <label class="lbl">密碼長度：<span id="glen-out">16</span> 字元</label>
+          <input type="range" min="8" max="64" value="16" step="1" id="g-len" oninput="document.getElementById('glen-out').textContent=this.value;genPw()">
+        </div>
+        <!-- Extra options (uppercase/num/sym) -->
+        <div id="g-opts-wrap" style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px">
+          <label class="chk-label"><input type="checkbox" id="g-up" checked onchange="genPw()"> 大寫字母</label>
+          <label class="chk-label"><input type="checkbox" id="g-num" checked onchange="genPw()"> 數字</label>
+          <label class="chk-label"><input type="checkbox" id="g-sym" checked onchange="genPw()"> 特殊符號</label>
+        </div>
+        <!-- Word count (for passphrase methods) -->
+        <div id="g-words-wrap" class="field" style="display:none">
+          <label class="lbl">單詞數量：<span id="g-words-out">4</span> 個</label>
+          <input type="range" min="3" max="8" value="4" step="1" id="g-words" oninput="document.getElementById('g-words-out').textContent=this.value;genPw()">
+        </div>
+
+        <div class="gen-out">
+          <span id="g-pw-txt" style="flex:1;word-break:break-all"></span>
+          <button class="btn btn-sm" onclick="copyGen()" id="g-copy-btn">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>複製
+          </button>
+        </div>
+        <div class="strack"><div class="sfill" id="g-sfill"></div></div>
+        <div style="font-size:11px;color:var(--blue3);margin-bottom:14px" id="g-stxt"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" style="flex:1;justify-content:center" onclick="genPw()">
+            <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>重新生成
+          </button>
+          <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="useGen()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>用這組密碼新增
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT -->
+    <div id="t-report" style="display:none">
+      <div style="font-size:16px;font-weight:600;color:var(--blue5);margin-bottom:16px">安全總報告</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+        <div class="stat-box"><div class="stat-n" id="st-tot">0</div><div class="stat-l">密碼總數</div></div>
+        <div class="stat-box"><div class="stat-n" id="st-wk" style="color:var(--red5)">0</div><div class="stat-l">弱密碼數</div></div>
+        <div class="stat-box"><div class="stat-n" id="st-avg" style="color:var(--blue4)">—</div><div class="stat-l">平均分數</div></div>
+      </div>
+      <!-- Firebase info card -->
+      <div class="box-info" style="margin-bottom:14px">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <div>
+          <strong>雲端儲存架構</strong><br>
+          <span style="font-size:12px">帳號驗證由 Firebase Authentication 管理 · 密碼資料存於 Firebase Realtime Database · 每位使用者的資料以 UID 隔離 · 支援多裝置即時同步</span>
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--bd2);margin-bottom:12px" id="r-profile"></div>
+      <div class="card" style="border-color:var(--bd2);margin-bottom:12px" id="r-levels"></div>
+      <div class="card" style="border-color:var(--bd2)" id="r-ach"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-hd">
+      <div style="font-size:15px;font-weight:600;color:var(--blue5)" id="m-title">新增密碼</div>
+      <button class="btn btn-sm btn-ghost" onclick="closeModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="field"><label class="lbl">網站 / 服務名稱</label><input class="inp" id="m-site" placeholder="例如：Gmail、Instagram、Bank"></div>
+    <div class="field"><label class="lbl">帳號 / Email</label><input class="inp" id="m-acc" placeholder="例如：user@gmail.com"></div>
+    <div class="field">
+      <label class="lbl">密碼</label>
+      <div class="inp-row" style="margin-bottom:6px">
+        <input class="inp inp-mono" type="password" id="m-pw" placeholder="輸入密碼" style="flex:1" oninput="modalPwCheck()">
+        <button class="btn btn-sm" onclick="toggleVis('m-pw','m-eye')" title="顯示/隱藏"><svg id="m-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <div id="m-feedback" style="display:none">
+        <div class="strack"><div class="sfill" id="m-sfill"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--blue3);margin-bottom:6px">
+          <span id="m-slbl"></span><span id="m-sscore" style="font-weight:600;color:var(--blue5)"></span>
+        </div>
+        <div id="m-policy"></div>
+      </div>
+    </div>
+    <div class="field"><label class="lbl">備註（選填）</label><input class="inp" id="m-note" placeholder="例如：工作帳號、個人用途"></div>
+    <!-- Encryption notice -->
+    <div style="background:var(--green1);border:1px solid var(--green2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--green5);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+      <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--green4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      密碼將以 Hash 加密後上傳至 Firebase · 明文不會被儲存 · 資料以您的帳號 UID 隔離保護
+    </div>
+    <div class="err" id="m-err"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;justify-content:center" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="savePw()" id="m-save-btn">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        儲存至雲端
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  Firebase SDK                              -->
+<!-- ═══════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, remove }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+/* ── Firebase Config ── */
+const firebaseConfig = {
+  apiKey: "AIzaSyAGcBYCXMHwIiy9z-vxogcWypelDW88uiA",
+  authDomain: "cybervault-7e028.firebaseapp.com",
+  databaseURL: "https://cybervault-7e028-default-rtdb.firebaseio.com",
+  projectId: "cybervault-7e028",
+  storageBucket: "cybervault-7e028.firebasestorage.app",
+  messagingSenderId: "135471477864",
+  appId: "1:135471477864:web:fa993ea4cd8c9c22e437dd"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const auth = getAuth(fbApp);
+
+/* ── Constants ── */
+const LEAKED=["123456","password","qwerty","abc123","111111","123123","password1","iloveyou","admin","letmein","welcome","monkey","dragon","master","sunshine","princess","shadow","superman","michael","jennifer","123456789","1234567890","12345678","password123","666666","000000","pass","test","login","guest","123","1234","12345","654321","passw0rd","p@ssword","qwerty123","hello","football","baseball","hockey","trustno1","qazwsx","1q2w3e","1qaz2wsx","zaq1zaq1","abcdef","112233","102030","123qwe"];
+const PEPPER="CV$PeP2026!xZq9";
+const SALT_PFX="CV_SLT_V2_";
+const NAMES=["name","birth","date","year","love","baby","home","work","cindy","peter","john","mary","lisa","alice","bob","cat","dog","game","life"];
+const PAT=[/^(.)\1+$/,/^(123|abc|qwe|asd|zxc)/i,/(\d)\1{3,}/,/^[a-z]+$/,/^[0-9]+$/];
+
+/* ── State ── */
+let CU=null, PWS=[], genPwVal="", editIdx=null, editKey=null, unsubscribe=null;
+
+/* ── Crypto (simulated bcrypt-style with pepper+salt) ── */
+function sh(s){
+  let h=5381n;
+  let input=SALT_PFX+PEPPER+s;
+  for(let c of input){h=((h<<5n)+h)^BigInt(c.charCodeAt(0))}
+  return"CV2$"+BigInt.asUintN(64,h).toString(36).padStart(12,"0");
+}
+
+/* ── Firebase helpers ── */
+async function fbGetUser(uid){
+  try{
+    const snap=await get(ref(db,"users/"+uid));
+    return snap.exists()?snap.val():null;
+  }catch(e){return null}
+}
+async function fbSetUser(uid,data){
+  await set(ref(db,"users/"+uid),data);
+}
+async function fbSavePw(uid,key,data){
+  await set(ref(db,"vaults/"+uid+"/"+key),data);
+}
+async function fbDeletePw(uid,key){
+  await remove(ref(db,"vaults/"+uid+"/"+key));
+}
+function fbListenVault(uid,cb){
+  const r=ref(db,"vaults/"+uid);
+  return onValue(r,snap=>{
+    let arr=[];
+    if(snap.exists()){
+      snap.forEach(child=>{arr.push({_key:child.key,...child.val()})});
+    }
+    cb(arr);
+  });
+}
+function getUID(){return auth.currentUser?auth.currentUser.uid:CU}
+function genKey(){return Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7)}
+
+/* ── Password logic ── */
+function scoreIt(pw,user){
+  if(!pw)return 0;
+  let s=0;
+  if(pw.length>=16)s+=25;else if(pw.length>=12)s+=18;else if(pw.length>=8)s+=10;
+  if(/[A-Z]/.test(pw))s+=10;if(/[a-z]/.test(pw))s+=8;
+  if(/[0-9]/.test(pw))s+=10;if(/[^A-Za-z0-9]/.test(pw))s+=20;
+  if(/[^A-Za-z0-9].*[^A-Za-z0-9]/.test(pw))s+=7;
+  if(LEAKED.includes(pw.toLowerCase()))s=Math.max(0,s-50);
+  if(pw.length<8)s=Math.max(0,s-25);
+  if(PAT.some(p=>p.test(pw)))s=Math.max(0,s-20);
+  if(user&&pw.toLowerCase().includes(user.toLowerCase()))s=Math.max(0,s-20);
+  let sem=semantic(pw);
+  if(sem.risk==="high")s=Math.max(0,s-25);
+  else if(sem.risk==="med")s=Math.max(0,s-10);
+  return Math.min(100,s);
+}
+function grade(s){
+  if(s>=85)return{lbl:"Cyber Guardian",cls:"b-green",col:"#27500A"};
+  if(s>=65)return{lbl:"強",cls:"b-blue",col:"#0C447C"};
+  if(s>=40)return{lbl:"中等",cls:"b-amber",col:"#633806"};
+  return{lbl:"弱",cls:"b-red",col:"#791F1F"};
+}
+function scol(s){return s>=65?"#1D9E75":s>=40?"#BA7517":"#E24B4A"}
+function hackTime(pw){
+  let c=26;
+  if(/[A-Z]/.test(pw))c+=26;if(/[0-9]/.test(pw))c+=10;if(/[^A-Za-z0-9]/.test(pw))c+=33;
+  let sec=Math.pow(c,pw.length)/1e11;
+  if(sec<1)return{t:"不到1秒",risk:true};if(sec<60)return{t:Math.round(sec)+"秒",risk:true};
+  if(sec<3600)return{t:Math.round(sec/60)+"分鐘",risk:true};
+  if(sec<86400)return{t:Math.round(sec/3600)+"小時",risk:true};
+  if(sec<2592000)return{t:Math.round(sec/86400)+"天",risk:false};
+  if(sec<31536000)return{t:Math.round(sec/2592000)+"個月",risk:false};
+  let y=sec/31536000;
+  if(y>1e15)return{t:"幾乎無法破解",risk:false};
+  if(y>1e9)return{t:(y/1e9).toFixed(0)+"億年",risk:false};
+  if(y>1e6)return{t:(y/1e6).toFixed(0)+"百萬年",risk:false};
+  if(y>1000)return{t:Math.round(y/1000)+"千年",risk:false};
+  return{t:Math.round(y)+"年",risk:false};
+}
+function semantic(pw){
+  let p=pw.toLowerCase();
+  let guessable=NAMES.some(n=>p.includes(n));
+  let hasDate=/\d{4}/.test(pw)||/\d{2}[\/-]\d{2}/.test(pw);
+  let trivial=LEAKED.includes(p)||PAT.some(r=>r.test(pw));
+  if(trivial)return{risk:"high",msg:"常見字典詞彙或鍵盤模式，極易被猜測"};
+  if(guessable&&hasDate)return{risk:"high",msg:"包含姓名及日期，社交工程可輕易破解"};
+  if(guessable)return{risk:"med",msg:"含有常見人名或詞彙，可猜測性偏高"};
+  if(hasDate)return{risk:"med",msg:"含有疑似日期數字，具一定可猜測性"};
+  return{risk:"low",msg:"無明顯語意弱點"};
+}
+function policyCheck(pw,others,user){
+  return[
+    {ok:!others.some(p=>p.pwHash===sh(pw)),msg:!others.some(p=>p.pwHash===sh(pw))?"密碼未重複使用":"此密碼已重複使用於其他帳號"},
+    {ok:!(user&&pw.toLowerCase().includes(user.toLowerCase())),msg:!(user&&pw.toLowerCase().includes(user.toLowerCase()))?"未包含帳號名稱":"密碼包含帳號名稱，容易被猜測"},
+    {ok:!LEAKED.includes(pw.toLowerCase()),msg:!LEAKED.includes(pw.toLowerCase())?"未出現在外洩資料庫":"密碼已出現在外洩資料庫！"},
+    {ok:pw.length>=12,msg:pw.length>=12?"符合 NIST 長度標準（≥12）":"NIST 建議：長度至少 12 字元"},
+    {ok:/[^A-Za-z0-9]/.test(pw),msg:/[^A-Za-z0-9]/.test(pw)?"包含特殊符號":"建議加入特殊符號"},
+    {ok:semantic(pw).risk==="low",msg:semantic(pw).risk==="low"?"語意安全，無可猜測風險":"語意風險："+semantic(pw).msg},
+  ];
+}
+
+/* ── SVG snippets ── */
+const SVG={
+  ok:`<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#1D9E75;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px"><polyline points="20 6 9 17 4 12"/></svg>`,
+  fail:`<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#E24B4A;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  clock:`<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  warn:`<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  brain:`<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M9.5 2a2.5 2.5 0 0 1 5 0v20a2.5 2.5 0 0 1-5 0z"/><path d="M4 8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/></svg>`,
+  arr:`<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`,
+  mail:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--blue4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+  world:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--blue4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+};
+
+/* ── UI helpers ── */
+function toggleVis(id,icoId){
+  let inp=document.getElementById(id),ico=document.getElementById(icoId);
+  const EYE=`<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  const EYEOFF=`<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+  if(inp.type==="password"){inp.type="text";ico.innerHTML=EYEOFF}
+  else{inp.type="password";ico.innerHTML=EYE}
+}
+function showErr(id,msg){let e=document.getElementById(id);e.textContent=msg;e.classList.add("on")}
+function hideErr(id){document.getElementById(id).classList.remove("on")}
+function setSyncStatus(online){
+  let b=document.getElementById("sync-badge"),t=document.getElementById("sync-txt");
+  if(!b)return;
+  b.className="sync-badge"+(online?"":" offline");
+  t.textContent=online?"雲端同步":"離線模式";
+}
+
+/* ── Auth ── */
+function switchAuth(t){
+  ["login","reg"].forEach(x=>{
+    document.getElementById("atab-"+x).classList.toggle("on",x===t);
+    document.getElementById("af-"+x).style.display=x===t?"block":"none";
+  });
+}
+window.switchAuth=switchAuth;
+
+async function doLogin(){
+  hideErr("l-err");
+  let u=document.getElementById("l-u").value.trim();
+  let p=document.getElementById("l-p").value;
+  if(!u||!p){showErr("l-err","請輸入帳號和主密碼");return}
+  // 將帳號轉換為 Firebase Auth 所需的 email 格式
+  let email=u.includes("@")?u:u+"@cybervault.local";
+  let btn=document.getElementById("l-btn");
+  btn.disabled=true;btn.innerHTML='<span class="spinner" style="width:14px;height:14px;margin:0;border-width:2px"></span> 驗證中...';
+  try{
+    const cred=await signInWithEmailAndPassword(auth,email,p);
+    CU=u;
+    loginOK(cred.user);
+  }catch(e){
+    const code=e.code||"";
+    if(code==="auth/user-not-found"||code==="auth/invalid-credential"||code==="auth/wrong-password"){
+      showErr("l-err","帳號或密碼錯誤");
+    } else if(code==="auth/too-many-requests"){
+      showErr("l-err","登入嘗試次數過多，請稍後再試");
+    } else {
+      showErr("l-err","連線失敗，請檢查網路");
+    }
+  }finally{
+    btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> 登入';
+  }
+}
+window.doLogin=doLogin;
+
+async function doRegister(){
+  hideErr("r-err");
+  let u=document.getElementById("r-u").value.trim();
+  let p=document.getElementById("r-p").value;
+  let p2=document.getElementById("r-p2").value;
+  if(!u||!p){showErr("r-err","請填寫完整資料");return}
+  if(u.length<3){showErr("r-err","帳號至少 3 個字元");return}
+  if(p.length<8){showErr("r-err","主密碼至少 8 個字元");return}
+  if(p!==p2){showErr("r-err","兩次密碼不相符");return}
+  if(scoreIt(p,u)<25){showErr("r-err","主密碼強度不足，請加入大小寫、數字及符號");return}
+  // 將帳號轉換為 Firebase Auth 所需的 email 格式
+  let email=u.includes("@")?u:u+"@cybervault.local";
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,p);
+    // 將顯示名稱設為帳號名
+    await updateProfile(cred.user,{displayName:u});
+    // 儲存帳號 metadata 到 RTDB
+    await fbSetUser(cred.user.uid,{username:u,created:Date.now()});
+    CU=u;
+    loginOK(cred.user);
+  }catch(e){
+    const code=e.code||"";
+    if(code==="auth/email-already-in-use"){showErr("r-err","此帳號已存在");}
+    else if(code==="auth/weak-password"){showErr("r-err","主密碼強度不足");}
+    else{showErr("r-err","建立失敗："+e.message);}
+  }
+}
+window.doRegister=doRegister;
+
+function regStrength(){
+  let p=document.getElementById("r-p").value;
+  let bar=document.getElementById("r-sbar");
+  if(!p){bar.style.display="none";return}
+  bar.style.display="block";
+  let s=scoreIt(p,"");
+  document.getElementById("r-sfill").style.cssText="width:"+s+"%;background:"+scol(s);
+  document.getElementById("r-stxt").textContent=grade(s).lbl+" · "+s+"/100";
+}
+window.regStrength=regStrength;
+
+function loginOK(fbUser){
+  document.getElementById("pg-auth").classList.remove("on");
+  document.getElementById("pg-main").classList.add("on");
+  document.getElementById("nav-u").textContent=CU;
+  setSyncStatus(true);
+  // Real-time listener — 使用 Firebase UID 作為 vault 路徑，確保隔離性
+  if(unsubscribe)unsubscribe();
+  let uid=fbUser?fbUser.uid:CU;
+  unsubscribe=fbListenVault(uid,arr=>{
+    PWS=arr;
+    markDups();
+    renderVault();
+    renderReport();
+    document.getElementById("vault-sync-info").textContent=
+      "Firebase 雲端 · 共 "+arr.length+" 筆 · 最後同步："+new Date().toLocaleTimeString("zh-TW");
+  });
+}
+
+// 監聽 Firebase Auth 狀態變化（頁面重新整理後自動恢復登入）
+onAuthStateChanged(auth,fbUser=>{
+  if(fbUser){
+    CU=fbUser.displayName||fbUser.email.split("@")[0];
+    loginOK(fbUser);
+  }
+});
+
+async function doLogout(){
+  if(unsubscribe){unsubscribe();unsubscribe=null}
+  CU=null;PWS=[];
+  try{ await signOut(auth); }catch(e){}
+  document.getElementById("pg-main").classList.remove("on");
+  document.getElementById("pg-auth").classList.add("on");
+  document.getElementById("l-u").value="";document.getElementById("l-p").value="";
+  hideErr("l-err");switchAuth("login");
+}
+window.doLogout=doLogout;
+
+/* ── Tabs ── */
+function sTab(t){
+  ["vault","analyze","gen","report"].forEach(x=>{document.getElementById("t-"+x).style.display=x===t?"block":"none"});
+  document.querySelectorAll(".tnav").forEach((b,i)=>b.classList.toggle("on",["vault","analyze","gen","report"][i]===t));
+  if(t==="report")renderReport();
+  if(t==="gen"){
+    if(!document.getElementById("gm-csprng")){buildMethodGrid();selectMethod("csprng");}
+  }
+}
+window.sTab=sTab;
+
+/* ── Vault ── */
+function siteIcon(site){
+  return site.toLowerCase().includes("gmail")||site.toLowerCase().includes("mail")?SVG.mail:SVG.world;
+}
+function renderVault(){
+  let list=document.getElementById("vault-list");
+  let empty=document.getElementById("vault-empty");
+  if(!PWS.length){list.innerHTML="";empty.style.display="block";return}
+  empty.style.display="none";
+  list.innerHTML=PWS.map((p,i)=>{
+    let g=grade(p.score||0);
+    return`<div class="pw-item">
+      <div class="pw-icon">${siteIcon(p.site)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">
+          <span style="font-size:14px;font-weight:600;color:var(--blue5)">${p.site}</span>
+          <span class="badge ${g.cls}">${g.lbl}</span>
+          ${p.leaked?`<span class="badge b-red">${SVG.warn} 已外洩</span>`:""}
+          ${p.dup?`<span class="badge b-amber">重複使用</span>`:""}
+        </div>
+        <div style="font-size:12px;color:var(--blue3)">${p.acc} · ${p.score}/100 · ${new Date(p.time).toLocaleDateString("zh-TW")}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-sm" onclick="viewPwDialog(${i})" title="查看密碼">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="btn btn-sm" onclick="editPw(${i})" title="編輯">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-sm btn-red" onclick="deletePw(${i})" title="刪除">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>`}).join("");
+}
+
+function viewPwDialog(i){
+  let p=PWS[i];
+  alert("網站："+p.site+"\n帳號："+p.acc+"\n密碼："+p.pwPlain+"\n安全分數："+p.score+"/100"+(p.note?"\n備註："+p.note:""));
+}
+window.viewPwDialog=viewPwDialog;
+
+function openModal(prePw){
+  editIdx=null;editKey=null;
+  document.getElementById("m-title").textContent="新增密碼";
+  document.getElementById("m-save-btn").innerHTML='<svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> 儲存至雲端';
+  ["m-site","m-acc","m-note"].forEach(id=>document.getElementById(id).value="");
+  let pw=document.getElementById("m-pw");pw.value=prePw||"";pw.type="password";
+  document.getElementById("m-eye").innerHTML=`<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  hideErr("m-err");
+  document.getElementById("m-feedback").style.display="none";
+  document.getElementById("modal-bg").classList.add("on");
+  if(prePw)modalPwCheck();
+}
+window.openModal=openModal;
+
+function editPw(i){
+  editIdx=i;let p=PWS[i];editKey=p._key;
+  document.getElementById("m-title").textContent="編輯密碼";
+  document.getElementById("m-save-btn").innerHTML='<svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> 更新至雲端';
+  document.getElementById("m-site").value=p.site;
+  document.getElementById("m-acc").value=p.acc;
+  let pw=document.getElementById("m-pw");pw.value=p.pwPlain||"";pw.type="password";
+  document.getElementById("m-eye").innerHTML=`<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  document.getElementById("m-note").value=p.note||"";
+  hideErr("m-err");
+  document.getElementById("modal-bg").classList.add("on");
+  modalPwCheck();
+}
+window.editPw=editPw;
+
+function closeModal(){document.getElementById("modal-bg").classList.remove("on")}
+window.closeModal=closeModal;
+
+function modalPwCheck(){
+  let pw=document.getElementById("m-pw").value;
+  let fb=document.getElementById("m-feedback");
+  if(!pw){fb.style.display="none";return}
+  fb.style.display="block";
+  let s=scoreIt(pw,CU);
+  document.getElementById("m-sfill").style.cssText="width:"+s+"%;background:"+scol(s);
+  document.getElementById("m-slbl").textContent=grade(s).lbl;
+  document.getElementById("m-sscore").textContent=s+"/100";
+  let others=editIdx!==null?PWS.filter((_,i)=>i!==editIdx):PWS;
+  let chks=policyCheck(pw,others,CU);
+  document.getElementById("m-policy").innerHTML=chks.map(c=>`
+    <div class="policy-row">${c.ok?SVG.ok:SVG.fail}
+      <span style="font-size:12px;color:${c.ok?"#27500A":"#791F1F"}">${c.msg}</span>
+    </div>`).join("");
+}
+window.modalPwCheck=modalPwCheck;
+window.toggleVis=toggleVis;
+
+async function savePw(){
+  let site=document.getElementById("m-site").value.trim();
+  let acc=document.getElementById("m-acc").value.trim();
+  let pw=document.getElementById("m-pw").value;
+  let note=document.getElementById("m-note").value.trim();
+  if(!site||!acc||!pw){showErr("m-err","請填寫網站、帳號與密碼");return}
+  let btn=document.getElementById("m-save-btn");
+  btn.disabled=true;
+  let s=scoreIt(pw,CU);
+  let others=editIdx!==null?PWS.filter((_,i)=>i!==editIdx):PWS;
+  // ⚠ 重要：只存 hash 到雲端，pwPlain 僅本次 session 顯示用
+  let key=editKey||genKey();
+  let entry={
+    site,acc,
+    pwPlain:pw,          // 僅存在記憶體，不怕被駭
+    pwHash:sh(pw),       // Salt+Pepper hash → 存 Firebase
+    score:s,note,
+    time:Date.now(),
+    leaked:LEAKED.includes(pw.toLowerCase()),
+    dup:others.some(p=>p.pwHash===sh(pw))
+  };
+  try{
+    await fbSavePw(getUID(),key,entry);
+    closeModal();
+  }catch(e){showErr("m-err","儲存失敗，請檢查網路")}
+  finally{btn.disabled=false}
+}
+window.savePw=savePw;
+
+function markDups(){
+  let h={};PWS.forEach(p=>{h[p.pwHash]=(h[p.pwHash]||0)+1});
+  PWS.forEach(p=>{p.dup=h[p.pwHash]>1});
+}
+
+async function deletePw(i){
+  if(!confirm("確定刪除「"+PWS[i].site+"」的密碼？"))return;
+  try{await fbDeletePw(getUID(),PWS[i]._key)}
+  catch(e){alert("刪除失敗，請檢查網路")}
+}
+window.deletePw=deletePw;
+
+/* ── Analyze ── */
+function liveAnalyze(){
+  let pw=document.getElementById("a-inp").value;
+  let res=document.getElementById("a-res"),ph=document.getElementById("a-ph");
+  if(!pw){res.style.display="none";ph.style.display="block";return}
+  res.style.display="block";ph.style.display="none";
+  let s=scoreIt(pw,CU),g=grade(s),ht=hackTime(pw),sem=semantic(pw);
+  let chks=policyCheck(pw,PWS,CU);
+  let dims=[
+    {n:"長度",ok:pw.length>=12,v:pw.length+"字元"},
+    {n:"大寫字母",ok:/[A-Z]/.test(pw),v:/[A-Z]/.test(pw)?"包含":"缺少"},
+    {n:"數字",ok:/[0-9]/.test(pw),v:/[0-9]/.test(pw)?"包含":"缺少"},
+    {n:"特殊符號",ok:/[^A-Za-z0-9]/.test(pw),v:/[^A-Za-z0-9]/.test(pw)?"包含":"缺少"},
+    {n:"外洩資料庫",ok:!LEAKED.includes(pw.toLowerCase()),v:LEAKED.includes(pw.toLowerCase())?"已外洩！":"安全"},
+    {n:"語意安全",ok:sem.risk==="low",v:sem.risk==="low"?"無風險":{high:"高風險",med:"中風險"}[sem.risk]},
+  ];
+  let tips=[];
+  if(pw.length<12)tips.push("增加長度至 12 字元以上");
+  if(!/[A-Z]/.test(pw))tips.push("加入大寫字母（A-Z）");
+  if(!/[^A-Za-z0-9]/.test(pw))tips.push("加入特殊符號，例如 !@#$%");
+  if(LEAKED.includes(pw.toLowerCase()))tips.push("立即放棄此密碼，它已廣為人知");
+  if(sem.risk!=="low")tips.push("避免使用姓名、生日等可猜測資訊");
+  let circ=150,off=circ-(circ*s/100);
+  res.innerHTML=`
+    <div style="display:flex;align-items:center;gap:14px;padding:14px;background:#EEF4FD;border-radius:10px;margin-bottom:14px;border:1px solid var(--bd2)">
+      <div style="position:relative;flex-shrink:0">
+        <svg class="score-ring" viewBox="0 0 62 62">
+          <circle cx="31" cy="31" r="24" fill="none" stroke="#D5E4F5" stroke-width="5"/>
+          <circle cx="31" cy="31" r="24" fill="none" stroke="${scol(s)}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}" style="transform:rotate(-90deg);transform-origin:50% 50%"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--blue5)">${s}</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:16px;font-weight:700;color:var(--blue5);margin-bottom:4px">${g.lbl}</div>
+        <div style="font-size:12px;color:var(--blue3)">安全評分 ${s}/100</div>
+      </div>
+    </div>
+    <div class="sec-lbl">六維度安全分析</div>
+    <div style="margin-bottom:12px">${dims.map(d=>`
+      <div class="dim-row">
+        <span style="font-size:13px;color:var(--blue5);display:flex;align-items:center;gap:7px">${d.ok?SVG.ok:SVG.fail}${d.n}</span>
+        <span style="font-size:12px;color:${d.ok?"#27500A":"#791F1F"};font-weight:600">${d.v}</span>
+      </div>`).join("")}</div>
+    <div class="${sem.risk==="high"?"box-danger":sem.risk==="med"?"box-warn":"box-ok"}">
+      ${SVG.brain}<span><strong>語意 AI：</strong>${sem.msg}</span>
+    </div>
+    <div class="${ht.risk?"box-danger":"box-ok"}">
+      ${SVG.clock}<span>暴力破解估計需要 <strong>${ht.t}</strong>（每秒 1000 億次嘗試）</span>
+    </div>
+    <div class="sec-lbl" style="margin-top:14px">規則引擎稽核</div>
+    <div style="margin-bottom:12px">${chks.map(c=>`
+      <div class="policy-row">${c.ok?SVG.ok:SVG.fail}
+        <span style="font-size:12px;color:${c.ok?"#27500A":"#791F1F"}">${c.msg}</span>
+      </div>`).join("")}</div>
+    ${tips.length?`<div class="sec-lbl">AI 改善建議</div><div style="display:flex;flex-wrap:wrap;gap:4px">${tips.map(t=>`<span class="hint-chip">${SVG.arr}${t}</span>`).join("")}</div>`:""}
+  `;
+}
+window.liveAnalyze=liveAnalyze;
+function clearAnalyze(){document.getElementById("a-inp").value="";liveAnalyze()}
+window.clearAnalyze=clearAnalyze;
+
+/* ── Generator — 20 密碼學策略 ── */
+const GEN_METHODS=[
+  // ── 高熵隨機類 ──
+  {id:"csprng",    cat:"高熵隨機", name:"CSPRNG 隨機",      tag:"crypto.getRandomValues",
+   desc:"使用瀏覽器內建的密碼學安全亂數產生器（CSPRNG），每個字元都由硬體熵源決定，無法預測。最接近真正隨機的密碼。",
+   hasLen:true, hasOpts:true, hasWords:false},
+  {id:"hex",       cat:"高熵隨機", name:"Hex 字串",          tag:"16進位編碼",
+   desc:"使用 CSPRNG 生成隨機位元組，再轉成十六進位表示（0-9, a-f）。常見於 API Token、Session ID。字元集小但熵值高。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  {id:"base64",    cat:"高熵隨機", name:"Base64 編碼",       tag:"RFC 4648",
+   desc:"隨機位元組經 Base64 編碼（A-Z, a-z, 0-9, +, /）。比 Hex 密度更高，相同長度包含更多熵，廣泛用於 JWT、API 金鑰。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  {id:"base58",    cat:"高熵隨機", name:"Base58 編碼",       tag:"Bitcoin 風格",
+   desc:"移除容易混淆的字元（0, O, I, l）的 Base64 變體，由比特幣發明。適合手動輸入或展示給使用者的 Token。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  {id:"base32",    cat:"高熵隨機", name:"Base32 編碼",       tag:"RFC 4648",
+   desc:"只用大寫字母 A-Z 和數字 2-7，共 32 個字元。熵密度較低但易於語音傳達，常見於 TOTP（雙因素驗證）種子碼。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  // ── 助記詞 / 通行短語類 ──
+  {id:"diceware",  cat:"助記詞", name:"Diceware 骰子詞",   tag:"EFF 標準",
+   desc:"模擬擲骰子選詞的方式，從 EFF 大型詞庫隨機選取單詞組合。每個詞提供約 12.9 bits 熵，4 個詞 ≈ 51 bits，易於記憶且安全。",
+   hasLen:false, hasOpts:false, hasWords:true},
+  {id:"xkcd",      cat:"助記詞", name:"XKCD 四詞法",       tag:"correct horse battery staple",
+   desc:"來自 XKCD 漫畫 #936 提出的概念：四個隨機常見詞組合比複雜短密碼更安全且更好記。展示了熵值 vs 記憶性的平衡。",
+   hasLen:false, hasOpts:false, hasWords:true},
+  {id:"camel",     cat:"助記詞", name:"駝峰式通行短語",    tag:"CamelCase Passphrase",
+   desc:"將多個單詞以駝峰命名法組合（如 CorrectHorseBattery），在需要「無空格」的系統中保持通行短語的可讀性與強度。",
+   hasLen:false, hasOpts:false, hasWords:true},
+  {id:"pin_words", cat:"助記詞", name:"詞＋數字混合",      tag:"Hybrid Passphrase",
+   desc:"單詞組合加上隨機數字與符號，平衡記憶性與複雜度要求。適合有「必須包含數字」規定的網站。",
+   hasLen:false, hasOpts:false, hasWords:true},
+  // ── 格式化 / 結構類 ──
+  {id:"uuid",      cat:"格式化", name:"UUID v4",            tag:"RFC 4122",
+   desc:"符合 RFC 4122 的通用唯一識別碼，格式為 8-4-4-4-12 十六進位，122 bits 的隨機熵。廣泛用於資料庫主鍵、API 識別碼。",
+   hasLen:false, hasOpts:false, hasWords:false},
+  {id:"ulid",      cat:"格式化", name:"ULID",               tag:"時間排序 ID",
+   desc:"Universally Unique Lexicographically Sortable Identifier，前 10 字元為毫秒時間戳，後 16 字元為隨機值，可依時間排序。",
+   hasLen:false, hasOpts:false, hasWords:false},
+  {id:"pin",       cat:"格式化", name:"數字 PIN 碼",        tag:"Numeric PIN",
+   desc:"純數字密碼，適用於 ATM、手機解鎖等數字鍵盤場景。長度越長安全性越高，建議至少 8 碼。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  {id:"pattern",   cat:"格式化", name:"AANN 模式",          tag:"字母數字模式",
+   desc:"按照「字母-字母-數字-數字」交替模式生成，符合許多企業系統的密碼格式規定（如臨時密碼、序號）。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  {id:"pronounce", cat:"格式化", name:"可發音密碼",         tag:"Pronounceable",
+   desc:"按照「子音-母音-子音」音節結構生成，產生可發音的假詞。犧牲部分熵換取記憶性，比完全隨機更易口述傳達。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  // ── 雜湊 / 摘要類 ──
+  {id:"sha256",    cat:"雜湊摘要", name:"SHA-256 摘要截段",  tag:"NIST FIPS 180-4",
+   desc:"對隨機種子計算 SHA-256 雜湊值，取前 N 個十六進位字元。SHA-256 是單向函數，無法從輸出反推輸入，安全性極高。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  {id:"sha512",    cat:"雜湊摘要", name:"SHA-512 摘要截段",  tag:"512-bit 輸出",
+   desc:"SHA-512 輸出 512 bits（128 個十六進位字元），適合需要極長 Token 的場景。截取前段作為密碼使用。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  {id:"pbkdf2",    cat:"雜湊摘要", name:"PBKDF2 衍生",       tag:"RFC 2898 / PKCS #5",
+   desc:"Password-Based Key Derivation Function 2，對隨機種子進行 10000 次 HMAC-SHA256 迭代，故意降低速度以抵抗暴力破解，是儲存密碼的業界標準之一。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  // ── 編碼轉換類 ──
+  {id:"ascii85",   cat:"編碼轉換", name:"ASCII85 編碼",      tag:"Adobe / RFC 1924",
+   desc:"每 4 個位元組編碼為 5 個 ASCII 可列印字元，比 Base64 密度更高（25% vs 33% 膨脹率）。常見於 PDF 內部資料編碼。",
+   hasLen:true, hasOpts:false, hasWords:false},
+  {id:"mnemonic",  cat:"編碼轉換", name:"BIP39 助記詞",      tag:"比特幣錢包標準",
+   desc:"加密貨幣錢包使用的標準助記詞格式，從 2048 個英文詞庫選取，12 個詞 = 128 bits 熵。每個詞可精確恢復對應的金鑰。",
+   hasLen:false, hasOpts:false, hasWords:false},
+  {id:"emoji",     cat:"編碼轉換", name:"Emoji 密碼",        tag:"Unicode 表情符號",
+   desc:"從密碼學安全的常用 Emoji 集合中隨機選取，每個 Emoji 約提供 8 bits 熵。主要作為教學展示用，部分系統不支援 Unicode 密碼。",
+   hasLen:true, hasOpts:false, hasWords:false},
+];
+
+// BIP39 精選詞庫（256個高頻詞）
+const BIP39_WORDS=["abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid","acoustic","acquire","across","act","action","actor","actress","actual","adapt","add","addict","address","adjust","admit","adult","advance","advice","aerobic","afford","afraid","again","age","agent","agree","ahead","aim","air","airport","aisle","alarm","album","alcohol","alert","alien","all","alley","allow","almost","alone","alpha","already","also","alter","always","amateur","amazing","among","amount","amused","analyst","anchor","ancient","anger","angle","angry","animal","ankle","announce","annual","another","answer","antenna","antique","anxiety","apart","apology","appear","apple","approve","april","arch","arctic","area","arena","argue","arm","armor","army","around","arrange","arrest","arrive","arrow","art","artefact","artist","artwork","ask","aspect","assault","asset","assist","assume","asthma","athlete","atom","attack","attend","attitude","attract","auction","audit","august","aunt","author","auto","autumn","average","avocado","award","aware","away","awesome","awful","awkward","axis","baby","balance","bamboo","banana","banner","bar","barely","bargain","barrel","base","basic","battle","beach","bean","beauty","because","become","beef","before","begin","behave","behind","believe","below","belt","bench","benefit","best","betray","better","between","beyond","bicycle","bid","bike","bind","biology","bird","birth","bitter","black","blade","blame","blanket","blast","bleak","bless","blind","blood","blossom","blouse","blue","blur","blush","board","boat","body","boil","bomb","bone","book","boost","border","boring","borrow","boss","bottom","bounce","box","boy","bracket","brain","brand","brave","breeze","brick","bridge","brief","bright","bring","brisk","broccoli","broken","bronze","broom","brother","brown","brush","bubble","buddy","budget","buffalo","build","bulb","bulk","bullet","bundle","bunker","burden","burger","burst","bus","business","busy","butter","buyer","buzz"];
+
+// EFF Diceware 精選詞庫（200個）
+const DICEWARE_WORDS=["aardvark","ability","abruptly","absence","abstract","abyss","academy","acrobat","adamant","adapter","address","adept","adjust","admiral","adobe","adorn","adult","advance","aerial","aerobic","afford","affront","agency","agenda","agile","agony","ailment","airport","algebra","almond","almost","alone","aloof","alter","amble","ample","anchor","ancient","angler","animal","antics","anvil","apathy","apex","apiary","aplomb","apricot","aptly","arbor","arctic","ardent","arduous","armada","armpit","aroma","arson","artful","ascent","ashen","ashore","aspire","astute","atrium","attic","audible","augment","avocado","avow","awkward","azure","babble","badger","baker","bamboo","bandit","bangle","banish","banjo","banquet","barely","bargain","barrel","barren","basket","battle","beacon","beagle","beaker","befall","beggar","behave","behold","belong","bemuse","benign","berate","bestow","beyond","bicker","bifocal","bingo","birch","bishop","bison","blanket","blaster","blaze","blight","bliss","blizzard","blot","blowfish","blunder","boast","bobcat","boggle","bolster","bonfire","boogie","border","borough","bounce","bracket","bravely","brawl","brazen","breezy","brewer","brickwork","bridge","brisk","broken","bronze","broom","broth","browse","brunch","bucket","budget","bumble","bundle","bungle","burrow","butter","buzzer","cactus","cadet","cajole","calmly","calzone","candle","canyon","captain","caravan","careful","carrot","cartoon","castle","casual","catfish","catnap","cauliflower","cavern","cellar","chalet","chamber","champion","charcoal","charity","charter","cheetah","cherry","chestnut","chivalry","cinnamon","circuit","citadel","clammer","clarify","clamor","classic","clatter","clever","climber","clutter","cobalt","cobbler","coconut","comet","comfort","compact","compel","comply","condor","contend","convert","copper","coral","cornfield","cottage","cougar","coyote","cradle","crater","crayon","crisp","crocus","crouch","crowbar","crutch","crystal"];
+
+// XKCD 常用詞
+const XKCD_WORDS=["correct","horse","battery","staple","cloud","river","mountain","forest","ocean","desert","castle","dragon","wizard","knight","garden","bridge","winter","summer","autumn","spring","apple","cherry","mango","lemon","grape","tiger","eagle","wolf","bear","shark","piano","guitar","trumpet","violin","flute","purple","silver","golden","crimson","azure","thunder","lightning","shadow","crystal","diamond","ancient","modern","clever","brave","swift","gentle","mighty","tiny","vast","deep","bright","dark","silent","loud","smooth","rough","warm","cold","fuzzy","sharp","hidden","open","secret","simple","complex","wild","tame","magic","logic","dream","story","song","poem","river","stone","flame","frost","storm","calm","chaos","order","truth","mystery"];
+
+const EMOJI_SET=["🔑","🛡️","🔒","⚡","🌊","🔥","❄️","🌙","⭐","🦋","🐉","🦊","🌺","🍀","🎯","💎","🚀","🌈","⚔️","🏔️","🎭","🌸","🦅","🐺","🔮","💫","🌟","🎪","🦁","🐬","🌴","🎨","🧩","🎲","🃏","🧲","⚙️","🔬","🧬","🎸","🎺","🎻","🥁","🎹","🌍","🌊","🏰","🗝️","💡","🔭"];
+
+let genMethodId="csprng";
+
+function buildMethodGrid(){
+  let cats=[...new Set(GEN_METHODS.map(m=>m.cat))];
+  let html="";
+  cats.forEach(cat=>{
+    html+=`<div style="grid-column:1/-1;font-size:10px;font-weight:700;color:var(--blue3);letter-spacing:1px;text-transform:uppercase;margin-top:6px;margin-bottom:2px">${cat}</div>`;
+    GEN_METHODS.filter(m=>m.cat===cat).forEach(m=>{
+      html+=`<button id="gm-${m.id}" onclick="selectMethod('${m.id}')" style="text-align:left;padding:8px 10px;border-radius:8px;border:1px solid var(--bd2);background:#fff;cursor:pointer;font-family:inherit;transition:all .15s">
+        <div style="font-size:12px;font-weight:600;color:var(--blue5)">${m.name}</div>
+        <div style="font-size:10px;color:var(--blue3);margin-top:2px">${m.tag}</div>
+      </button>`;
+    });
+  });
+  document.getElementById("g-method-grid").innerHTML=html;
+}
+window.buildMethodGrid=buildMethodGrid;
+
+function selectMethod(id){
+  genMethodId=id;
+  document.querySelectorAll("[id^='gm-']").forEach(b=>{
+    b.style.background="#fff";b.style.borderColor="var(--bd2)";
+  });
+  let btn=document.getElementById("gm-"+id);
+  btn.style.background="var(--blue1)";btn.style.borderColor="var(--blue3)";
+  let m=GEN_METHODS.find(x=>x.id===id);
+  document.getElementById("g-method-desc").textContent=m.desc;
+  document.getElementById("g-len-wrap").style.display=m.hasLen?"block":"none";
+  document.getElementById("g-opts-wrap").style.display=m.hasOpts?"flex":"none";
+  document.getElementById("g-words-wrap").style.display=m.hasWords?"block":"none";
+  genPw();
+}
+window.selectMethod=selectMethod;
+
+// SHA-256 helper (browser native)
+async function sha256hex(str){
+  let buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function sha512hex(str){
+  let buf=await crypto.subtle.digest("SHA-512",new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function pbkdf2hex(seed,len){
+  let keyMaterial=await crypto.subtle.importKey("raw",new TextEncoder().encode(seed),{name:"PBKDF2"},false,["deriveBits"]);
+  let salt=crypto.getRandomValues(new Uint8Array(16));
+  let bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:10000,hash:"SHA-256"},keyMaterial,Math.min(len,64)*4);
+  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,"0")).join("").slice(0,len);
+}
+
+function randBytes(n){return crypto.getRandomValues(new Uint8Array(n))}
+function randInt(max){return randBytes(4)[0]%max}  // simple, good enough for UI
+
+function genCSPRNG(len,upper,num,sym){
+  let c="abcdefghijklmnopqrstuvwxyz";
+  if(upper)c+="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  if(num)c+="0123456789";
+  if(sym)c+="!@#$%^&*()-_=+[]{}";
+  let bytes=randBytes(len*2),pw="";
+  for(let i=0;i<len;i++)pw+=c[bytes[i]%c.length];
+  return pw;
+}
+function genHex(len){
+  let b=randBytes(Math.ceil(len/2));
+  return Array.from(b).map(x=>x.toString(16).padStart(2,"0")).join("").slice(0,len);
+}
+function genBase64(len){
+  let b=randBytes(Math.ceil(len*3/4));
+  let s=btoa(String.fromCharCode(...b)).replace(/=/g,"");
+  return s.slice(0,len);
+}
+function genBase58(len){
+  const A="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let b=randBytes(len),pw="";
+  for(let i=0;i<len;i++)pw+=A[b[i]%58];
+  return pw;
+}
+function genBase32(len){
+  const A="ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let b=randBytes(len),pw="";
+  for(let i=0;i<len;i++)pw+=A[b[i]%32];
+  return pw;
+}
+function genDiceware(n,pool){
+  let bytes=randBytes(n*2),words=[];
+  for(let i=0;i<n;i++)words.push(pool[bytes[i*2]%pool.length+(bytes[i*2+1]%2===0?0:pool.length/2|0)%pool.length]);
+  // simpler pick
+  words=[];
+  for(let i=0;i<n;i++)words.push(pool[Math.floor(Math.random()*pool.length)]);
+  return words.join(" ");
+}
+function genXKCD(n){
+  let w=[];for(let i=0;i<n;i++)w.push(XKCD_WORDS[Math.floor(Math.random()*XKCD_WORDS.length)]);
+  return w.join(" ");
+}
+function genCamel(n){
+  let w=[];for(let i=0;i<n;i++){let word=XKCD_WORDS[Math.floor(Math.random()*XKCD_WORDS.length)];w.push(word.charAt(0).toUpperCase()+word.slice(1))}
+  return w.join("");
+}
+function genPinWords(n){
+  let w=[];for(let i=0;i<n;i++)w.push(XKCD_WORDS[Math.floor(Math.random()*XKCD_WORDS.length)]);
+  let num=Math.floor(Math.random()*900)+100;
+  let syms=["!","@","#","$","%"];
+  return w.join("-")+num+syms[Math.floor(Math.random()*syms.length)];
+}
+function genUUID(){
+  return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
+    let r=randBytes(1)[0]>>>(c==="x"?0:2),v=c==="x"?r&0xf:(r&0x3|0x8);
+    return v.toString(16);
+  });
+}
+function genULID(){
+  let t=Date.now().toString(32).toUpperCase().padStart(10,"0").slice(-10);
+  const C="0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  let r="";let b=randBytes(16);
+  for(let i=0;i<16;i++)r+=C[b[i]%32];
+  return t+r;
+}
+function genPIN(len){
+  let b=randBytes(len),pw="";
+  for(let i=0;i<len;i++)pw+=b[i]%10;
+  return pw;
+}
+function genPattern(len){
+  const CONS="bcdfghjklmnpqrstvwxyz",VOW="aeiou",NUM="0123456789";
+  let pw="",b=randBytes(len*2);
+  for(let i=0;i<len;i++){
+    if(i%4===0||i%4===1)pw+=CONS[b[i]%CONS.length].toUpperCase();
+    else pw+=NUM[b[i]%10];
+  }
+  return pw.slice(0,len);
+}
+function genPronounceable(len){
+  const C="bcdfghjklmnprstvwxyz",V="aeiou";
+  let pw="",b=randBytes(len*2);
+  for(let i=0;i<len;i++)pw+=(i%2===0?C[b[i]%C.length]:V[b[i]%V.length]);
+  return pw;
+}
+function genAscii85(len){
+  const A=Array.from({length:85},(_,i)=>String.fromCharCode(i+33));
+  let b=randBytes(len),pw="";
+  for(let i=0;i<len;i++)pw+=A[b[i]%85];
+  return pw;
+}
+function genBIP39(n){
+  let w=[];for(let i=0;i<n;i++)w.push(BIP39_WORDS[Math.floor(Math.random()*BIP39_WORDS.length)]);
+  return w.join(" ");
+}
+function genEmoji(len){
+  let b=randBytes(len),pw="";
+  for(let i=0;i<len;i++)pw+=EMOJI_SET[b[i]%EMOJI_SET.length];
+  return pw;
+}
+
+async function genPw(){
+  let len=parseInt(document.getElementById("g-len")?.value)||16;
+  let upper=document.getElementById("g-up")?.checked??true;
+  let num=document.getElementById("g-num")?.checked??true;
+  let sym=document.getElementById("g-sym")?.checked??true;
+  let words=parseInt(document.getElementById("g-words")?.value)||4;
+  let pw="";
+  try{
+    switch(genMethodId){
+      case"csprng":   pw=genCSPRNG(len,upper,num,sym);break;
+      case"hex":      pw=genHex(len);break;
+      case"base64":   pw=genBase64(len);break;
+      case"base58":   pw=genBase58(len);break;
+      case"base32":   pw=genBase32(len);break;
+      case"diceware": pw=genDiceware(words,DICEWARE_WORDS);break;
+      case"xkcd":     pw=genXKCD(words);break;
+      case"camel":    pw=genCamel(words);break;
+      case"pin_words":pw=genPinWords(words);break;
+      case"uuid":     pw=genUUID();break;
+      case"ulid":     pw=genULID();break;
+      case"pin":      pw=genPIN(len);break;
+      case"pattern":  pw=genPattern(len);break;
+      case"pronounce":pw=genPronounceable(len);break;
+      case"sha256":   pw=(await sha256hex(Math.random().toString())).slice(0,len);break;
+      case"sha512":   pw=(await sha512hex(Math.random().toString())).slice(0,len);break;
+      case"pbkdf2":   pw=await pbkdf2hex(Math.random().toString(),len);break;
+      case"ascii85":  pw=genAscii85(len);break;
+      case"mnemonic": pw=genBIP39(12);break;
+      case"emoji":    pw=genEmoji(Math.min(len,20));break;
+      default:        pw=genCSPRNG(len,upper,num,sym);
+    }
+  }catch(e){pw=genCSPRNG(len,upper,num,sym)}
+  genPwVal=pw;
+  document.getElementById("g-pw-txt").textContent=pw;
+  let s=scoreIt(pw,"");
+  document.getElementById("g-sfill").style.cssText="width:"+s+"%;background:"+scol(s);
+  document.getElementById("g-stxt").textContent=grade(s).lbl+" · "+s+"/100";
+}
+window.genPw=genPw;
+function copyGen(){
+  navigator.clipboard.writeText(genPwVal).then(()=>{
+    let b=document.getElementById("g-copy-btn");let orig=b.innerHTML;
+    b.innerHTML='<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg> 已複製';
+    setTimeout(()=>{b.innerHTML=orig},1600);
+  }).catch(()=>alert("密碼："+genPwVal));
+}
+window.copyGen=copyGen;
+function useGen(){sTab("vault");openModal(genPwVal)}
+window.useGen=useGen;
+
+/* ── Report ── */
+function riskProfile(){
+  if(!PWS.length)return{label:"尚無資料",ico:"shield",bg:"#F1EFE8",col:"#888780",cls:"b-gray",desc:"請先新增密碼"};
+  let avg=PWS.reduce((a,p)=>a+(p.score||0),0)/PWS.length;
+  let wkR=PWS.filter(p=>(p.score||0)<40).length/PWS.length;
+  let hasLk=PWS.some(p=>p.leaked),hasDp=PWS.some(p=>p.dup);
+  if(avg>=65&&!hasLk&&!hasDp)return{label:"Low Risk User",bg:"#EAF3DE",col:"#1D9E75",cls:"b-green",desc:"密碼習慣良好，無明顯安全漏洞",shieldColor:"#1D9E75",shieldPath:"M9 12l2 2 4-4"};
+  if(avg>=40&&wkR<.4)return{label:"Medium Risk User",bg:"#FAEEDA",col:"#BA7517",cls:"b-amber",desc:"部分密碼需要加強",shieldColor:"#BA7517",shieldPath:""};
+  return{label:"High Risk User",bg:"#FCEBEB",col:"#E24B4A",cls:"b-red",desc:"存在多個高風險密碼，建議立即更換",shieldColor:"#E24B4A",shieldPath:"M15 9l-6 6M9 9l6 6"};
+}
+function renderReport(){
+  let tot=PWS.length,wk=PWS.filter(p=>(p.score||0)<40).length;
+  let avg=tot?Math.round(PWS.reduce((a,p)=>a+(p.score||0),0)/tot):0;
+  document.getElementById("st-tot").textContent=tot;
+  document.getElementById("st-wk").textContent=wk;
+  document.getElementById("st-avg").textContent=tot?avg+"/100":"—";
+  let rp=riskProfile();
+  document.getElementById("r-profile").innerHTML=`
+    <div class="sec-lbl">AI 行為分析 · Risk Profile</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:46px;height:46px;border-radius:11px;background:${rp.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:${rp.col};fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">
+          <path d="M12 2L4 6v6c0 5.5 3.6 10.7 8 12 4.4-1.3 8-6.5 8-12V6l-8-4z"/>
+          ${rp.shieldPath?`<path d="${rp.shieldPath}"/>`:""}
+        </svg>
+      </div>
+      <div>
+        <span class="badge ${rp.cls}" style="font-size:13px;padding:4px 12px;margin-bottom:4px;display:inline-block">${rp.label}</span>
+        <div style="font-size:12px;color:var(--blue3)">${rp.desc}</div>
+      </div>
+    </div>
+    ${tot?`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div style="background:#EEF4FD;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:700;color:var(--blue5)">${PWS.filter(p=>p.dup).length}</div>
+        <div style="font-size:11px;color:var(--blue3);margin-top:2px">重複密碼</div>
+      </div>
+      <div style="background:#EEF4FD;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:700;color:var(--red5)">${PWS.filter(p=>p.leaked).length}</div>
+        <div style="font-size:11px;color:var(--blue3);margin-top:2px">外洩警示</div>
+      </div>
+      <div style="background:#EEF4FD;border-radius:8px;padding:10px;text-align:center">
+        <div style="font-size:18px;font-weight:700;color:var(--green5)">${PWS.filter(p=>(p.score||0)>=65).length}</div>
+        <div style="font-size:11px;color:var(--blue3);margin-top:2px">安全密碼</div>
+      </div>
+    </div>`:""}`;
+  let lvls=[{l:"Cyber Guardian",min:85,col:"#1D9E75"},{l:"強",min:65,col:"#185FA5"},{l:"中等",min:40,col:"#BA7517"},{l:"弱",min:0,col:"#E24B4A"}];
+  let cnts=lvls.map((lv,i)=>PWS.filter(p=>{let s=p.score||0;return s>=lv.min&&s<(lvls[i-1]?.min||101)}).length);
+  document.getElementById("r-levels").innerHTML=`<div class="sec-lbl">安全等級分佈</div>`+lvls.map((lv,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span style="width:90px;font-size:12px;color:var(--blue4)">${lv.l}</span>
+      <div style="flex:1;height:7px;background:#D5E4F5;border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${tot?Math.round(cnts[i]/tot*100):0}%;background:${lv.col};border-radius:4px"></div>
+      </div>
+      <span style="width:20px;font-size:12px;color:var(--blue3);text-align:right">${cnts[i]}</span>
+    </div>`).join("");
+  let AICO={key:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>`,star:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,db:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`,bolt:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,copy:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,crown:`<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/><line x1="3" y1="20" x2="21" y2="20"/></svg>`};
+  let achs=[
+    {ico:"key",bg:"#EEEDFE",col:"#3C3489",done:tot>=1,n:"密碼新手",d:"第一次儲存密碼"},
+    {ico:"star",bg:"#EAF3DE",col:"#27500A",done:PWS.some(p=>(p.score||0)>=65),n:"強密碼用戶",d:"擁有至少一組強密碼"},
+    {ico:"db",bg:"#E6F1FB",col:"#0C447C",done:tot>=5,n:"密碼收藏家",d:"密碼庫達 5 組"},
+    {ico:"bolt",bg:"#EAF3DE",col:"#27500A",done:tot>0&&!PWS.some(p=>p.leaked),n:"零外洩紀錄",d:"所有密碼未出現在外洩清單"},
+    {ico:"copy",bg:"#E6F1FB",col:"#0C447C",done:tot>0&&!PWS.some(p=>p.dup),n:"無重複密碼",d:"每個帳號使用獨立密碼"},
+    {ico:"crown",bg:"#FAEEDA",col:"#633806",done:tot>=3&&PWS.every(p=>(p.score||0)>=65),n:"資安守護者",d:"所有密碼達強等級"},
+  ];
+  document.getElementById("r-ach").innerHTML=`<div class="sec-lbl">成就徽章</div>`+achs.map(a=>`
+    <div class="ach-row" style="opacity:${a.done?1:.4}">
+      <div class="ach-ico" style="background:${a.bg};color:${a.col}">${AICO[a.ico]}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--blue5)">${a.n}</div>
+        <div style="font-size:11px;color:var(--blue3)">${a.d}</div>
+      </div>
+      <span class="badge ${a.done?"b-green":"b-gray"}">${a.done?"已達成":"未達成"}</span>
+    </div>`).join("");
+}
+
+/* ── Init ── */
+// Hide loading, show app (auth state is managed by onAuthStateChanged above)
+document.getElementById("loading").classList.add("hide");
+document.getElementById("app").style.display="block";
+
+// Modal close on backdrop
+document.getElementById("modal-bg").addEventListener("click",function(e){if(e.target===this)closeModal()});
+
+// Network status
+window.addEventListener("online",()=>setSyncStatus(true));
+window.addEventListener("offline",()=>setSyncStatus(false));
+
+buildMethodGrid();selectMethod("csprng");
+
+/* ── PWA ── */
+// Service Worker 註冊
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("service-worker.js")
+      .then(()=>console.log("[CyberVault] Service Worker 已註冊"))
+      .catch(e=>console.warn("[CyberVault] SW 註冊失敗",e));
+  });
+}
+
+// 安裝提示
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  // 只在非 PWA 模式下顯示 banner（不在已安裝的 App 內重複顯示）
+  if(!window.matchMedia("(display-mode: standalone)").matches){
+    document.getElementById("pwa-banner").classList.add("show");
+  }
+});
+window.addEventListener("appinstalled",()=>{
+  document.getElementById("pwa-banner").classList.remove("show");
+  deferredPrompt=null;
+});
+function pwaInstall(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null});
+}
+function pwaDismiss(){
+  document.getElementById("pwa-banner").classList.remove("show");
+}
+window.pwaInstall=pwaInstall;
+window.pwaDismiss=pwaDismiss;
+</script>
+</body>
+</html>

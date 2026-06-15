@@ -1,0 +1,27 @@
+{
+  "name": "CyberVault — 智慧密碼安全系統",
+  "short_name": "CyberVault",
+  "description": "Firebase 雲端同步密碼管理器，支援 AI 強度分析與 20 種密碼學生成策略",
+  "start_url": "./CyberVault_Firebase.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#EEF3FA",
+  "theme_color": "#185FA5",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": []
+}
