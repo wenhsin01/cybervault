@@ -155,6 +155,28 @@ input[type=range]{accent-color:var(--blue4);width:100%}
 .pwa-banner-ico{width:40px;height:40px;background:var(--blue4);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .pwa-banner-ico svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
+/* PWA floating install button (navbar) */
+.pwa-nav-btn{display:none;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--blue3);background:var(--blue4);color:#fff;font-family:inherit;transition:all .15s;animation:pwaGlow 2.5s ease-in-out infinite}
+.pwa-nav-btn.show{display:flex}
+.pwa-nav-btn svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.pwa-nav-btn:hover{background:var(--blue5);transform:scale(1.03)}
+@keyframes pwaGlow{0%,100%{box-shadow:0 0 0 0 rgba(55,138,221,0)}50%{box-shadow:0 0 0 4px rgba(55,138,221,.25)}}
+
+/* iOS install modal */
+.ios-modal-bg{display:none;position:fixed;inset:0;background:rgba(10,25,55,.6);z-index:300;align-items:flex-end;justify-content:center;padding:0}
+.ios-modal-bg.on{display:flex}
+.ios-modal{background:#fff;border-radius:20px 20px 0 0;padding:24px 22px 32px;width:100%;max-width:480px;box-shadow:0 -8px 32px rgba(12,68,124,.18)}
+.ios-step{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid #EAF0F8}
+.ios-step:last-child{border:none}
+.ios-step-num{width:26px;height:26px;border-radius:50%;background:var(--blue4);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ios-step-ico{width:32px;height:32px;border-radius:8px;background:var(--blue1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ios-step-ico svg{width:17px;height:17px;stroke:var(--blue4);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ios-arrow-anim{animation:iosBounce 1.2s ease-in-out infinite}
+@keyframes iosBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+
+/* Snooze reminder chip */
+.pwa-snooze-hint{font-size:11px;color:var(--blue3);text-align:center;margin-top:8px}
+
 @media(max-width:600px){
   .navbar{padding:0 14px}.main-content{padding:12px}
   .auth-card{width:100%;padding:22px 18px}.modal{padding:16px}
@@ -175,17 +197,62 @@ input[type=range]{accent-color:var(--blue4);width:100%}
 </head>
 <body>
 
-<!-- PWA Install Banner -->
+<!-- PWA Install Banner (Android / Chrome) -->
 <div class="pwa-banner" id="pwa-banner">
   <div class="pwa-banner-ico">
     <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.5 3.6 10.7 8 12 4.4-1.3 8-6.5 8-12V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>
   </div>
   <div style="flex:1">
     <div style="font-size:13px;font-weight:600;color:var(--blue5)">安裝 CyberVault App</div>
-    <div style="font-size:11px;color:var(--blue3);margin-top:1px">加入主畫面，像 App 一樣使用</div>
+    <div style="font-size:11px;color:var(--blue3);margin-top:1px">加入主畫面，像原生 App 一樣使用</div>
   </div>
-  <button class="btn btn-primary btn-sm" onclick="pwaInstall()" id="pwa-install-btn">安裝</button>
-  <button class="btn btn-ghost btn-sm" onclick="pwaDismiss()">✕</button>
+  <button class="btn btn-primary btn-sm" onclick="pwaInstall()" id="pwa-install-btn">立即安裝</button>
+  <button class="btn btn-ghost btn-sm" onclick="pwaDismiss()" title="稍後再說">✕</button>
+</div>
+
+<!-- iOS Safari Install Modal -->
+<div class="ios-modal-bg" id="ios-modal-bg" onclick="if(event.target===this)iosModalClose()">
+  <div class="ios-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--blue5)">安裝 CyberVault 到主畫面</div>
+        <div style="font-size:11px;color:var(--blue3);margin-top:2px">只需 3 步驟，像 App 一樣快速開啟</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="iosModalClose()" style="flex-shrink:0">✕</button>
+    </div>
+    <div class="ios-step">
+      <div class="ios-step-num">1</div>
+      <div class="ios-step-ico">
+        <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--blue5)">點擊底部的「分享」按鈕</div>
+        <div style="font-size:12px;color:var(--blue3);margin-top:2px">Safari 工具列中間的 <strong>⬆</strong> 圖示</div>
+      </div>
+      <div class="ios-arrow-anim" style="margin-left:auto;font-size:20px;padding-left:8px">⬆</div>
+    </div>
+    <div class="ios-step">
+      <div class="ios-step-num">2</div>
+      <div class="ios-step-ico">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--blue5)">選擇「加入主畫面」</div>
+        <div style="font-size:12px;color:var(--blue3);margin-top:2px">在分享選單中向下滾動找到此選項</div>
+      </div>
+    </div>
+    <div class="ios-step">
+      <div class="ios-step-num">3</div>
+      <div class="ios-step-ico">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--blue5)">點擊右上角「新增」</div>
+        <div style="font-size:12px;color:var(--blue3);margin-top:2px">CyberVault 圖示就會出現在主畫面！</div>
+      </div>
+    </div>
+    <div class="pwa-snooze-hint">關閉後，下次造訪仍會提醒你安裝</div>
+  </div>
 </div>
 
 <!-- Loading -->
@@ -282,6 +349,10 @@ input[type=range]{accent-color:var(--blue4);width:100%}
       <div><div class="logo-name">CyberVault</div><div class="logo-sub">SECURITY SYSTEM</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
+      <button class="pwa-nav-btn" id="pwa-nav-btn" onclick="pwaNavClick()" title="安裝 App">
+        <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        安裝 App
+      </button>
       <div class="sync-badge" id="sync-badge">
         <div class="sync-dot"></div>
         <span id="sync-txt">雲端同步</span>
@@ -1332,30 +1403,96 @@ if("serviceWorker" in navigator){
   });
 }
 
-// 安裝提示
-let deferredPrompt=null;
-window.addEventListener("beforeinstallprompt",e=>{
+// ── 平台偵測 ──
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+  || window.navigator.standalone === true;
+
+// ── Snooze 機制：記住使用者關閉時間（3天後再提醒）──
+const SNOOZE_KEY = "cv_pwa_snooze";
+const SNOOZE_DAYS = 3;
+function isSnoozed(){
+  const t = localStorage.getItem(SNOOZE_KEY);
+  if(!t) return false;
+  return (Date.now() - parseInt(t)) < SNOOZE_DAYS * 86400000;
+}
+function setSnooze(){ localStorage.setItem(SNOOZE_KEY, Date.now()); }
+function clearSnooze(){ localStorage.removeItem(SNOOZE_KEY); }
+
+// ── Android / Chrome：beforeinstallprompt ──
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
-  deferredPrompt=e;
-  // 只在非 PWA 模式下顯示 banner（不在已安裝的 App 內重複顯示）
-  if(!window.matchMedia("(display-mode: standalone)").matches){
-    document.getElementById("pwa-banner").classList.add("show");
+  deferredPrompt = e;
+  if(!isStandalone){
+    // 顯示 navbar 安裝按鈕（常駐）
+    document.getElementById("pwa-nav-btn").classList.add("show");
+    // 若未 snooze 才顯示 banner
+    if(!isSnoozed()){
+      document.getElementById("pwa-banner").classList.add("show");
+    }
   }
 });
-window.addEventListener("appinstalled",()=>{
+
+window.addEventListener("appinstalled", () => {
   document.getElementById("pwa-banner").classList.remove("show");
-  deferredPrompt=null;
+  document.getElementById("pwa-nav-btn").classList.remove("show");
+  deferredPrompt = null;
+  clearSnooze();
+  console.log("[CyberVault] PWA 已安裝");
 });
-function pwaInstall(){
-  if(!deferredPrompt)return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(()=>{deferredPrompt=null});
+
+// ── iOS Safari：自動顯示引導 Modal ──
+if(isIOS && isSafari && !isStandalone){
+  // 顯示 navbar 安裝按鈕
+  document.getElementById("pwa-nav-btn").classList.add("show");
+  // 若未 snooze 才自動彈出引導
+  if(!isSnoozed()){
+    setTimeout(() => {
+      document.getElementById("ios-modal-bg").classList.add("on");
+    }, 1500); // 延遲 1.5 秒，讓頁面先載入完畢
+  }
 }
+
+// ── 函式 ──
+function pwaInstall(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(choice => {
+    if(choice.outcome === "accepted") clearSnooze();
+    deferredPrompt = null;
+    document.getElementById("pwa-nav-btn").classList.remove("show");
+  });
+}
+
 function pwaDismiss(){
   document.getElementById("pwa-banner").classList.remove("show");
+  setSnooze(); // 3 天後再提醒
 }
-window.pwaInstall=pwaInstall;
-window.pwaDismiss=pwaDismiss;
+
+function pwaNavClick(){
+  if(deferredPrompt){
+    // Android：直接觸發安裝
+    pwaInstall();
+  } else if(isIOS && isSafari){
+    // iOS：開啟引導 modal
+    document.getElementById("ios-modal-bg").classList.add("on");
+  } else {
+    // 其他：顯示 banner（若已有 deferredPrompt）
+    document.getElementById("pwa-banner").classList.add("show");
+  }
+}
+
+function iosModalClose(){
+  document.getElementById("ios-modal-bg").classList.remove("on");
+  setSnooze();
+}
+
+window.pwaInstall = pwaInstall;
+window.pwaDismiss = pwaDismiss;
+window.pwaNavClick = pwaNavClick;
+window.iosModalClose = iosModalClose;
 </script>
 </body>
 </html>
