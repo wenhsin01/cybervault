@@ -2,7 +2,7 @@
   "name": "CyberVault — 智慧密碼安全系統",
   "short_name": "CyberVault",
   "description": "Firebase 雲端同步密碼管理器，支援 AI 強度分析與 20 種密碼學生成策略",
-  "start_url": "/cybervault/index.html",
+  "start_url": "/cybervault/",
   "scope": "/cybervault/",
   "display": "standalone",
   "orientation": "portrait-primary",
